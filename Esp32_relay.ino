@@ -4,8 +4,8 @@
 #include <FirebaseESP32.h>      // Firebase library for ESP32
 
 // Firebase credentials
-#define FIREBASE_HOST "https://sdaaf-85d64-default-rtdb.asia-southeast1.firebasedatabase.app/"
-#define FIREBASE_AUTH "AIzaSyAPZTZ62nGvvghn8hWUmNWGQMMO8wpKI44"
+#define FIREBASE_HOST "your.firebase-database-url.here"
+#define FIREBASE_AUTH "your-web-api-key-here"
 
 // GPIO pin definitions for buttons and devices
 const int buttonPins[4] = {4, 5, 12, 13};   // Input pins for wall/touch/push buttons
