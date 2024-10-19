@@ -40,7 +40,7 @@ Esp32_relay/ <br>
 2. Open the project in Arduino IDE.
 3. Install required libraries through Library Manager.
 4. Update Firebase credentials 
-5. Upload the code to your ESP32.
+5. Upload the code to your ESP32. ( Make sure to select Partition Scheme to Minimal SPIFFS )
 
 ## How It Works
 1. On Startup:<br> - Restores device states from EEPROM. <br> - Attempts to connect to Wi-Fi. <br> - Syncs states with Firebase if Wi-Fi is available.
