@@ -5,25 +5,27 @@
 #include <NTPClient.h>
 
 // Firebase credentials
-#define FIREBASE_HOST "your_db_url"
-#define FIREBASE_AUTH "your_api_key"
+#define FIREBASE_HOST ""
+#define FIREBASE_AUTH ""
 
 
-#define FIREBASE_EMAIL "your_email"
-#define FIREBASE_PASSWORD "Your_pass"
+#define FIREBASE_EMAIL ""
+#define FIREBASE_PASSWORD ""
+
+const String UUID = "your-unique-device-id";
 
 // GPIO pin definitions for buttons and devices 13, 12, 14, 27, 26, 25, 33, 32
-const int buttonPins[8] = {32, 33, 25, 26, 27, 14, 12, 13};
-const int devicePins[8] = {23, 22, 21, 19, 18, 5, 17, 16};
+const int buttonPins[6] = {32, 33, 25, 26, 27, 14};
+const int devicePins[6] = {23, 22, 21, 19, 18, 5 };
 const int ledPin = 2;  // LED pin (GPIO 2)
 
 // State variables to track the status of each button and device
-bool buttonStates[8] = {LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW};
-bool lastButtonStates[8] = {LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW};
-bool deviceStates[8] = {LOW, LOW, LOW, LOW, LOW, LOW, LOW, LOW};
+bool buttonStates[6] = {LOW, LOW, LOW, LOW, LOW, LOW};
+bool lastButtonStates[6] = {LOW, LOW, LOW, LOW, LOW, LOW};
+bool deviceStates[6] = {LOW, LOW, LOW, LOW, LOW, LOW};
 
 // EEPROM memory addresses for storing the state of each device
-const int EEPROM_ADDRESSES[8] = {0, 1, 2, 3, 4, 5, 6, 7};
+const int EEPROM_ADDRESSES[6] = {0, 1, 2, 3, 4, 5};
 
 // Firebase objects for authentication and configuration
 FirebaseData firebaseData;
@@ -54,10 +56,17 @@ void setup() {
   EEPROM.begin(512);  // Initialize EEPROM with 512 bytes of storage
   pinMode(ledPin, OUTPUT);  // Configure LED pin as output
   digitalWrite(ledPin, LOW);  // Ensure LED is off initially
-
+  pinMode(32, INPUT);
+  pinMode(33, INPUT);
+  pinMode(25, INPUT);
+  pinMode(26, INPUT);
+  pinMode(27, INPUT);
+  pinMode(14, INPUT);
+  
+  
   // Configure button and device pins
-  for (int i = 0; i < 8; i++) {
-    pinMode(buttonPins[i], INPUT_PULLUP);  // Enable internal pull-up resistors for buttons
+  for (int i = 0; i < 6; i++) {
+    //pinMode(buttonPins[i], INPUT);  // Enable internal pull-up resistors for buttons
     pinMode(devicePins[i], OUTPUT);        // Set device pins as outputs
 
     // Load and apply the last stored state from EEPROM
@@ -79,8 +88,8 @@ void setup() {
   Firebase.reconnectWiFi(true);     // Automatically reconnect if Wi-Fi disconnects
 
   // Initialize Firebase paths if they don't exist
-  for (int i = 0; i < 8; i++) {
-    String path = "/deviceState" + String(i);
+  for (int i = 0; i < 6; i++) {
+    String path = "/"+ UUID + "/deviceState" + String(i);
     if (!Firebase.pathExist(firebaseData, path)) {
       Firebase.setBool(firebaseData, path, deviceStates[i]);  // Set initial state
     }
@@ -94,7 +103,7 @@ void loop() {
   // Check Wi-Fi connection and update LED status accordingly
   checkWiFiConnection();
 
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < 6; i++) {
     buttonStates[i] = digitalRead(buttonPins[i]);  // Read the button state
 
     if (buttonStates[i] != lastButtonStates[i]) {  // If button state has changed
@@ -142,7 +151,7 @@ bool loadStateFromEEPROM(int channel) {
 
 // Sync device state with Firebase
 void syncWithFirebase(int channel, bool state) {
-  String path = "/deviceState" + String(channel);
+  String path = "/" + UUID + "/deviceState" + String(channel);
   if (Firebase.setBool(firebaseData, path, state)) {
     Serial.print("State for device ");
     Serial.print(channel);
@@ -159,8 +168,8 @@ void syncWithFirebase(int channel, bool state) {
 
 // Check for updates from Firebase
 void checkFirebaseUpdates() {
-  for (int i = 0; i < 8; i++) {
-    String path = "/deviceState" + String(i);
+  for (int i = 0; i < 6; i++) {
+    String path = "/" + UUID + "/deviceState" + String(i);
     if (Firebase.getBool(firebaseData, path)) {
       bool firebaseState = firebaseData.boolData();
       if (firebaseState != deviceStates[i]) {
@@ -182,8 +191,8 @@ void checkFirebaseUpdates() {
 
 // Update device states from Firebase
 void updateStatesFromFirebase() {
-  for (int i = 0; i < 8; i++) {
-    String path = "/deviceState" + String(i);
+  for (int i = 0; i < 6; i++) {
+    String path = "/" + UUID + "/deviceState" + String(i);
     if (Firebase.getBool(firebaseData, path)) {
       bool firebaseState = firebaseData.boolData();
       if (firebaseState != deviceStates[i]) {
@@ -209,7 +218,7 @@ void logRelayStateChange(int channel, bool state) {
   String status = "relay" + String(channel + 1) + (state ? "_ON" : "_OFF");  // Define the relay state message
 
   // Create the path with the epoch time as the key
-  String path = "/log/" + String(epochTime);
+  String path = "/" + UUID + "/log/" + String(epochTime);
 
   // Save the log message (state) to Firebase at the path created by epoch time
   if (Firebase.setString(firebaseData, path, status)) {
